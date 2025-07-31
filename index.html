@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Integraciones - Shopify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .breadcrumb a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .integration-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .integration-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .integration-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .shopify-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #95BF47 0%, #7FAA3C 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .integration-title h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-enabled {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-disabled {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .integration-description {
+            color: #64748b;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #ef4444;
+        }
+
+        .form-input.success {
+            border-color: #22c55e;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: #ef4444;
+            margin-top: 4px;
+        }
+
+        .form-success {
+            font-size: 12px;
+            color: #22c55e;
+            margin-top: 4px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d5db;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .toggle-input:checked + .toggle-slider {
+            background-color: #3b82f6;
+        }
+
+        .toggle-input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .features-list {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+
+        .features-list h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .features-list ul {
+            list-style: none;
+            space-y: 8px;
+        }
+
+        .features-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .check-icon {
+            width: 16px;
+            height: 16px;
+            background: #22c55e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .oauth-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .oauth-info h5 {
+            color: #1d4ed8;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .oauth-info p {
+            color: #1e40af;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: #f0f9ff;
+            border: 1px solid #7dd3fc;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .connection-status.success {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .connection-status.error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+        }
+
+        .status-icon.success {
+            background: #22c55e;
+        }
+
+        .status-icon.error {
+            background: #ef4444;
+        }
+
+        .status-icon.info {
+            background: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="#">Configuración</a>
+            <span>›</span>
+            <a href="#">Mi Asistente</a>
+            <span>›</span>
+            <span>Integraciones</span>
+        </nav>
+
+        <div class="header">
+            <h1>Integraciones</h1>
+            <p>Conecta tu asistente con servicios externos para ampliar sus funcionalidades</p>
+        </div>
+
+        <div class="integration-card">
+            <div class="integration-header">
+                <div class="integration-title">
+                    <div class="shopify-logo">S</div>
+                    <div>
+                        <h3>Shopify</h3>
+                    </div>
+                </div>
+                <div class="status-badge status-disabled" id="statusBadge">Deshabilitado</div>
+            </div>
+
+            <p class="integration-description">
+                Conecta tu tienda Shopify para que tu asistente pueda acceder a tu catálogo de productos, crear órdenes y gestionar inventario en tiempo real desde WhatsApp.
+            </p>
+
+            <div class="toggle-container">
+                <label class="toggle-label">Habilitar integración con Shopify</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="toggle-input" id="shopifyToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div id="configForm" class="hidden">
+                <div class="oauth-info">
+                    <h5>🔐 Instalación Segura</h5>
+                    <p>Al hacer clic en "Instalar Integración" serás redirigido a Shopify para autorizar nuestra aplicación. Solo solicitamos los permisos mínimos necesarios para la funcionalidad.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="storeUrl" class="form-label">URL de tu tienda Shopify</label>
+                    <input 
+                        type="text" 
+                        id="storeUrl" 
+                        class="form-input" 
+                        placeholder="tu-tienda.myshopify.com"
+                        autocomplete="off"
+                    >
+                    <div class="form-help">
+                        Ingresa la URL completa de tu tienda (ejemplo: mi-tienda.myshopify.com)
+                    </div>
+                    <div class="form-error hidden" id="storeUrlError"></div>
+                    <div class="form-success hidden" id="storeUrlSuccess">✓ Tienda encontrada correctamente</div>
+                </div>
+
+
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="installBtn">
+                        <span class="loading hidden" id="installLoading"></span>
+                        Instalar Integración
+                    </button>
+                </div>
+
+                <div class="connection-status hidden" id="connectionStatus">
+                    <div class="status-icon info" id="statusIcon">i</div>
+                    <span id="statusMessage">Probando conexión...</span>
+                </div>
+            </div>
+
+            <div class="features-list">
+                <h4>Funcionalidades incluidas:</h4>
+                <ul>
+                    <li>
+                        <div class="check-icon">✓</div>
+                        Sincronización automática del catálogo de productos
+                    </li>
+                    <li>
+                        <div class="check-icon">✓</div>
+                        Consulta de inventario en tiempo real
+                    </li>
+                    <li>
+                        <div class="check-icon">✓</div>
+                        Creación automática de órdenes borrador
+                    </li>
+                    <li>
+                        <div class="check-icon">✓</div>
+                        Acceso a información de clientes existentes
+                    </li>
+                    <li>
+                        <div class="check-icon">✓</div>
+                        Generación de enlaces de pago seguros
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const toggle = document.getElementById('shopifyToggle');
+        const configForm = document.getElementById('configForm');
+        const statusBadge = document.getElementById('statusBadge');
+        const storeUrlInput = document.getElementById('storeUrl');
+        const installBtn = document.getElementById('installBtn');
+        const installLoading = document.getElementById('installLoading');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Error/success elements
+        const storeUrlError = document.getElementById('storeUrlError');
+        const storeUrlSuccess = document.getElementById('storeUrlSuccess');
+
+        // Toggle functionality
+        toggle.addEventListener('change', function() {
+            if (this.checked) {
+                configForm.classList.remove('hidden');
+                statusBadge.textContent = 'Configurando...';
+                statusBadge.className = 'status-badge status-disabled';
+            } else {
+                configForm.classList.add('hidden');
+                statusBadge.textContent = 'Deshabilitado';
+                statusBadge.className = 'status-badge status-disabled';
+                clearValidationStates();
+                hideConnectionStatus();
+            }
+        });
+
+        // Install integration
+        installBtn.addEventListener('click', async function() {
+            const storeUrl = storeUrlInput.value.trim();
+
+            if (!validateStoreUrl(storeUrl)) {
+                return;
+            }
+
+            installLoading.classList.remove('hidden');
+            installBtn.disabled = true;
+            clearValidationStates();
+            showConnectionStatus('info', 'Generando URL de instalación...');
+
+            try {
+                // Simular llamada al API para generar URL de instalación
+                setTimeout(() => {
+                    // En producción, aquí harías la llamada real a tu API
+                    const installUrl = generateInstallUrl(storeUrl);
+
+                    showConnectionStatus('info', 'Redirigiendo a Shopify para autorizar la instalación...');
+
+                    // Simular redirección después de un breve delay
+                    setTimeout(() => {
+                        // En producción: window.location.href = installUrl;
+                        // Para demo, simularemos el retorno exitoso
+                        handleInstallationSuccess(storeUrl);
+                    }, 1500);
+                }, 1000);
+                
+            } catch (error) {
+                installLoading.classList.add('hidden');
+                installBtn.disabled = false;
+                showConnectionStatus('error', 'Error al generar URL de instalación. Inténtalo de nuevo.');
+            }
+        });
+
+        function generateInstallUrl(storeUrl) {
+            // En producción, esto se generaría en tu backend
+            const clientId = 'your_shopify_app_client_id';
+            const scope = 'read_products,read_inventory,write_draft_orders,read_customers';
+            const redirectUri = 'https://your-app.com/auth/shopify/callback';
+            const state = btoa(JSON.stringify({ store: storeUrl, timestamp: Date.now() }));
+
+            return `https://${storeUrl}/admin/oauth/authorize?client_id=${clientId}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+        }
+
+        function handleInstallationSuccess(storeUrl) {
+            installLoading.classList.add('hidden');
+            installBtn.disabled = false;
+            installBtn.innerHTML = '✓ Instalación Completada';
+            installBtn.style.background = '#22c55e';
+            
+            statusBadge.textContent = 'Habilitado';
+            statusBadge.className = 'status-badge status-enabled';
+            showStoreUrlSuccess('Instalación completada exitosamente');
+            storeUrlInput.classList.add('success');
+            showConnectionStatus('success', `Integración instalada correctamente en ${storeUrl}. Tu asistente ya puede acceder a tu tienda.`);
+        }
+
+        function validateStoreUrl(storeUrl) {
+            if (!storeUrl) {
+                showStoreUrlError('Por favor ingresa la URL de tu tienda');
+                storeUrlInput.classList.add('error');
+                return false;
+            }
+
+            if (!storeUrl.includes('.myshopify.com')) {
+                showStoreUrlError('URL de tienda inválida. Debe terminar en .myshopify.com');
+                storeUrlInput.classList.add('error');
+                return false;
+            }
+
+            return true;
+        }
+
+        function showStoreUrlError(message) {
+            storeUrlError.textContent = message;
+            storeUrlError.classList.remove('hidden');
+            storeUrlSuccess.classList.add('hidden');
+        }
+
+        function showStoreUrlSuccess(message) {
+            storeUrlSuccess.textContent = `✓ ${message}`;
+            storeUrlSuccess.classList.remove('hidden');
+            storeUrlError.classList.add('hidden');
+        }
+
+        function showConnectionStatus(type, message) {
+            connectionStatus.classList.remove('hidden', 'success', 'error');
+            statusIcon.classList.remove('success', 'error', 'info');
+            
+            if (type === 'success') {
+                connectionStatus.classList.add('success');
+                statusIcon.classList.add('success');
+                statusIcon.textContent = '✓';
+            } else if (type === 'error') {
+                connectionStatus.classList.add('error');
+                statusIcon.classList.add('error');
+                statusIcon.textContent = '✗';
+            } else {
+                statusIcon.classList.add('info');
+                statusIcon.textContent = 'i';
+            }
+            
+            statusMessage.textContent = message;
+        }
+
+        function hideConnectionStatus() {
+            connectionStatus.classList.add('hidden');
+        }
+
+        function clearValidationStates() {
+            storeUrlInput.classList.remove('error', 'success');
+            storeUrlError.classList.add('hidden');
+            storeUrlSuccess.classList.add('hidden');
+        }
+
+        // Clear validation when user types
+        storeUrlInput.addEventListener('input', function() {
+            this.classList.remove('error', 'success');
+            storeUrlError.classList.add('hidden');
+            storeUrlSuccess.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
