@@ -5,10 +5,10 @@ Esta aplicación Next.js permite a los usuarios instalar tu aplicación de Shopi
 ## Flujo de Integración
 
 1. **Inicio**: El usuario introduce la URL de su tienda Shopify (ej: `mi-tienda.myshopify.com`)
-2. **Solicitud GET**: La aplicación envía un GET a `/api/webhooks/shopify/install` con query parameters
+2. **Redirect Directo**: La aplicación redirige directamente a `/api/webhooks/shopify/install` con query parameters
 3. **Proxy Transparente**: Next.js redirige automáticamente el request a tu API local
-4. **Redirect**: Tu API devuelve un redirect HTTP (302) que es capturado por el frontend
-5. **Navegación**: El frontend redirige al usuario a Shopify para autorizar la instalación
+4. **OAuth Flow**: Tu API maneja el flujo OAuth y redirige a Shopify para autorización
+5. **Autorización**: El usuario autoriza la instalación en Shopify
 6. **Callback**: Shopify redirige de vuelta a tu API con el código de autorización
 7. **Finalización**: Tu API procesa la autorización y redirige al usuario de vuelta a esta aplicación
 8. **Confirmación**: La aplicación detecta el retorno exitoso y muestra la confirmación
@@ -16,10 +16,10 @@ Esta aplicación Next.js permite a los usuarios instalar tu aplicación de Shopi
 ## Arquitectura
 
 ```
-Frontend → Next.js Proxy → Local API → Shopify OAuth → Callback → Frontend
+Frontend → Direct Redirect → Next.js Proxy → Local API → Shopify OAuth → Callback → Frontend
 ```
 
-Esta arquitectura usa el sistema de proxy integrado de Next.js hacia tu API local en localhost:8000.
+Esta arquitectura usa redirect directo del navegador, eliminando la complejidad de manejar fetch y redirects manuales.
 
 ## Configuración de API
 
@@ -40,10 +40,11 @@ async rewrites() {
 
 ### Request del Frontend
 
-El frontend hace GET a la ruta local que es proxificada:
+El frontend hace un redirect directo del navegador:
 
-```
-GET /api/webhooks/shopify/install?shop=mi-tienda.myshopify.com&assistant=02020202020202&returnUrl=http://localhost:3000
+```javascript
+const installUrl = `/api/webhooks/shopify/install?shop=mi-tienda.myshopify.com&assistant=02020202020202&redirect_url=http://localhost:3000`;
+window.location.href = installUrl;
 ```
 
 ### Query Parameters enviados a tu API
@@ -68,14 +69,14 @@ Alternativamente, el endpoint puede devolver un JSON con la URL:
 }
 ```
 
-### Ventajas del Proxy con GET
+### Ventajas del Redirect Directo
 
-- **Estándar OAuth**: GET es el método típico para endpoints de instalación de Shopify
-- **Sin configuración CORS**: Next.js maneja automáticamente los headers
-- **Query parameters**: Más natural para este tipo de requests
-- **Transparente**: Tu API recibe el request como si viniera directamente del navegador
-- **Compatible con Shopify SDK**: El SDK puede verificar la autenticidad del request
-- **Cacheable**: Los requests GET pueden ser cacheados por navegadores/proxies si es necesario
+- **Más simple**: No necesita manejar fetch ni redirects manuales
+- **Estándar OAuth**: Comportamiento típico de flows OAuth
+- **Sin complejidad**: El navegador maneja automáticamente toda la navegación
+- **Mejor UX**: Transición más fluida para el usuario
+- **Compatible con Shopify**: Funciona perfectamente con el flujo estándar de Shopify
+- **Sin problemas de CORS**: Next.js proxy maneja automáticamente los headers
 
 ## Detección de Retorno
 

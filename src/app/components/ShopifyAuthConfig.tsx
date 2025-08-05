@@ -95,7 +95,10 @@ export default function ShopifyAuthConfig() {
     }
 
     setIsLoading(true);
-    setStatus({ type: "info", message: "Generando URL de instalación..." });
+    setStatus({
+      type: "info",
+      message: "Redirigiendo a Shopify para autorizar la instalación...",
+    });
 
     try {
       // Incluir la URL actual como returnUrl para que Shopify regrese aquí después del proceso
@@ -105,54 +108,16 @@ export default function ShopifyAuthConfig() {
       const params = new URLSearchParams({
         shop: storeUrl.trim(),
         assistant: "02020202020202",
-        returnUrl: currentUrl,
+        redirect_url: currentUrl,
       });
 
-      const response = await fetch(
-        `/api/webhooks/shopify/install?${params.toString()}`,
-        {
-          method: "GET",
-          redirect: "manual", // Importante: evitar que fetch siga automáticamente el redirect
-        }
-      );
+      // Hacer redirect directo en lugar de fetch
+      const installUrl = `/api/webhooks/shopify/install?${params.toString()}`;
 
-      // Verificar si es un redirect (302, 301, etc.)
-      console.log(`Response status: ${response.status}`);
-      if (response.status >= 300 && response.status < 400) {
-        const redirectUrl = response.headers.get("Location");
-
-        if (redirectUrl) {
-          setStatus({
-            type: "info",
-            message: "Redirigiendo a Shopify para autorizar la instalación...",
-          });
-
-          // Hacer el redirect manualmente después de un breve delay
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 3000);
-        } else {
-          throw new Error("Respuesta de redirect sin URL de destino");
-        }
-      } else if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      } else {
-        // Si la respuesta es 200, podría contener la URL en el body
-        const data = await response.json();
-        if (data.redirectUrl || data.installUrl || data.authUrl) {
-          setStatus({
-            type: "info",
-            message: "Redirigiendo a Shopify para autorizar la instalación...",
-          });
-
-          setTimeout(() => {
-            window.location.href =
-              data.redirectUrl || data.installUrl || data.authUrl;
-          }, 1500);
-        } else {
-          throw new Error("No se recibió URL de instalación del servidor");
-        }
-      }
+      // Pequeño delay para mostrar el mensaje al usuario
+      setTimeout(() => {
+        window.location.href = installUrl;
+      }, 1500);
     } catch (error) {
       console.error("Error al instalar integración:", error);
       setStatus({
