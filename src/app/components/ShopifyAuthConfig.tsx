@@ -1,20 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { installShopifyIntegration } from "../actions/shopify-install";
 
 export default function ShopifyAuthConfig() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [storeUrl, setStoreUrl] = useState("");
+  const [assistantId, setAssistantId] = useState(
+    "asst_HddXQwDnR5Ng4YsZcthtmB9h"
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<{
-    type: "info" | "success" | "error";
-    message: string;
-  } | null>(null);
   const [validationState, setValidationState] = useState<{
     isValid: boolean;
     error?: string;
     success?: string;
   }>({ isValid: false });
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
 
   // Detectar si el usuario regresa de Shopify después de la instalación
   useEffect(() => {
@@ -85,12 +89,24 @@ export default function ShopifyAuthConfig() {
   const handleStoreUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setStoreUrl(value);
-    setValidationState({ isValid: false });
     setStatus(null);
+
+    // Validación en tiempo real
+    if (!value.trim()) {
+      setValidationState({ isValid: false });
+    } else if (!value.includes(".myshopify.com")) {
+      setValidationState({
+        isValid: false,
+        error: "URL de tienda inválida. Debe terminar en .myshopify.com",
+      });
+    } else {
+      setValidationState({ isValid: true });
+    }
   };
 
-  const handleInstall = async () => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     if (!validateStoreUrl(storeUrl)) {
+      e.preventDefault();
       return;
     }
 
@@ -99,36 +115,6 @@ export default function ShopifyAuthConfig() {
       type: "info",
       message: "Redirigiendo a Shopify para autorizar la instalación...",
     });
-
-    try {
-      // Incluir la URL actual como returnUrl para que Shopify regrese aquí después del proceso
-      const currentUrl = window.location.origin + window.location.pathname;
-
-      // Construir URL con query parameters
-      const params = new URLSearchParams({
-        shop: storeUrl.trim(),
-        assistant: "02020202020202",
-        redirect_url: currentUrl,
-      });
-
-      // Hacer redirect directo en lugar de fetch
-      const installUrl = `/api/webhooks/shopify/install?${params.toString()}`;
-
-      // Pequeño delay para mostrar el mensaje al usuario
-      setTimeout(() => {
-        window.location.href = installUrl;
-      }, 1500);
-    } catch (error) {
-      console.error("Error al instalar integración:", error);
-      setStatus({
-        type: "error",
-        message:
-          error instanceof Error
-            ? `Error: ${error.message}`
-            : "Error al generar URL de instalación. Inténtalo de nuevo.",
-      });
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -220,7 +206,42 @@ export default function ShopifyAuthConfig() {
 
           {/* Configuration Form */}
           {isEnabled && (
-            <div>
+            <form action={installShopifyIntegration} onSubmit={handleSubmit}>
+              {/* Hidden inputs for server action */}
+              <input type="hidden" name="assistant" value={assistantId} />
+              <input type="hidden" name="shop" value={storeUrl.trim()} />
+              <input
+                type="hidden"
+                name="redirect_url"
+                value={
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}${window.location.pathname}`
+                    : ""
+                }
+              />
+
+              {/* Assistant ID Input */}
+              <div className="mb-5">
+                <label
+                  htmlFor="assistantId"
+                  className="block font-medium mb-2 text-slate-700"
+                >
+                  Assistant ID
+                </label>
+                <input
+                  type="text"
+                  id="assistantId"
+                  value={assistantId}
+                  onChange={(e) => setAssistantId(e.target.value)}
+                  className="w-full px-4 py-3 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors border-slate-300"
+                  placeholder="asst_HddXQwDnR5Ng4YsZcthtmB9h"
+                  autoComplete="off"
+                />
+                <div className="text-xs text-slate-500 mt-1">
+                  ID del asistente al que conectar la integración
+                </div>
+              </div>
+
               {/* OAuth Info */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-5">
                 <h5 className="text-blue-800 text-sm font-semibold mb-2">
@@ -275,20 +296,25 @@ export default function ShopifyAuthConfig() {
               {/* Install Button */}
               <div className="flex gap-3">
                 <button
-                  onClick={handleInstall}
-                  disabled={isLoading || !!validationState.success}
+                  type="submit"
+                  disabled={
+                    isLoading ||
+                    !validationState.isValid ||
+                    !storeUrl.trim() ||
+                    !assistantId.trim()
+                  }
                   className={`flex items-center gap-2 px-6 py-3 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    !!validationState.success
-                      ? "bg-green-600 text-white"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                    validationState.isValid &&
+                    storeUrl.trim() &&
+                    assistantId.trim()
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-slate-400 text-white"
                   }`}
                 >
                   {isLoading && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   )}
-                  {!!validationState.success
-                    ? "✓ Instalación Completada"
-                    : "Instalar Integración"}
+                  {isLoading ? "Procesando..." : "Instalar Integración"}
                 </button>
               </div>
 
@@ -331,7 +357,7 @@ export default function ShopifyAuthConfig() {
                   </span>
                 </div>
               )}
-            </div>
+            </form>
           )}
 
           {/* Features List */}

@@ -1,120 +1,141 @@
-# Shopify Auth Integration App
+# Shopify Auth Configuration
 
-Esta aplicación Next.js permite a los usuarios instalar tu aplicación de Shopify de manera segura siguiendo el flujo OAuth estándar de Shopify.
+Aplicación Next.js 15+ para probar la integración de la API con Shopify usando Server Actions.
 
-## Flujo de Integración
+## 🚀 Tecnologías
 
-1. **Inicio**: El usuario introduce la URL de su tienda Shopify (ej: `mi-tienda.myshopify.com`)
-2. **Redirect Directo**: La aplicación redirige directamente a `/api/webhooks/shopify/install` con query parameters
-3. **Proxy Transparente**: Next.js redirige automáticamente el request a tu API local
-4. **OAuth Flow**: Tu API maneja el flujo OAuth y redirige a Shopify para autorización
-5. **Autorización**: El usuario autoriza la instalación en Shopify
-6. **Callback**: Shopify redirige de vuelta a tu API con el código de autorización
-7. **Finalización**: Tu API procesa la autorización y redirige al usuario de vuelta a esta aplicación
-8. **Confirmación**: La aplicación detecta el retorno exitoso y muestra la confirmación
+- **Next.js 15.4.5** con React 19
+- **Tailwind CSS v4** para styling
+- **TypeScript** para type safety
+- **Server Actions** para comunicación segura servidor-a-servidor
 
-## Arquitectura
+## 📋 Funcionalidades
 
-```
-Frontend → Direct Redirect → Next.js Proxy → Local API → Shopify OAuth → Callback → Frontend
-```
+- ✅ Interfaz de usuario idéntica al HTML original
+- ✅ Validación de URL de tienda Shopify en tiempo real
+- ✅ Detección automática de retorno desde OAuth
+- ✅ Server Actions para evitar problemas de CORS
+- ✅ Manejo seguro de redirects con Next.js
+- ✅ Estados de carga y mensajes de error
 
-Esta arquitectura usa redirect directo del navegador, eliminando la complejidad de manejar fetch y redirects manuales.
-
-## Configuración de API
-
-### Proxy de Next.js
-
-La aplicación usa el sistema de proxy integrado de Next.js configurado en `next.config.ts`:
-
-```typescript
-async rewrites() {
-  return [
-    {
-      source: "/api/:path*",
-      destination: "http://localhost:8000/api/:path*",
-    },
-  ];
-}
-```
-
-### Request del Frontend
-
-El frontend hace un redirect directo del navegador:
-
-```javascript
-const installUrl = `/api/webhooks/shopify/install?shop=mi-tienda.myshopify.com&assistant=02020202020202&redirect_url=http://localhost:3000`;
-window.location.href = installUrl;
-```
-
-### Query Parameters enviados a tu API
-
-```typescript
-{
-  shop: string;        // URL de la tienda (ej: "mi-tienda.myshopify.com")
-  assistant: string;   // ID del asistente (ej: "02020202020202")
-  returnUrl: string;   // URL donde regresar después de la instalación
-}
-```
-
-### Comportamiento esperado
-
-El endpoint debe procesar la solicitud y devolver un **redirect HTTP (302)** a la página de autorización de Shopify. La aplicación frontend captura este redirect y navega manualmente usando el header `Location` de la respuesta.
-
-Alternativamente, el endpoint puede devolver un JSON con la URL:
-
-```json
-{
-  "redirectUrl": "https://tienda.myshopify.com/admin/oauth/authorize?..."
-}
-```
-
-### Ventajas del Redirect Directo
-
-- **Más simple**: No necesita manejar fetch ni redirects manuales
-- **Estándar OAuth**: Comportamiento típico de flows OAuth
-- **Sin complejidad**: El navegador maneja automáticamente toda la navegación
-- **Mejor UX**: Transición más fluida para el usuario
-- **Compatible con Shopify**: Funciona perfectamente con el flujo estándar de Shopify
-- **Sin problemas de CORS**: Next.js proxy maneja automáticamente los headers
-
-## Detección de Retorno
-
-La aplicación detecta automáticamente cuando el usuario regresa de Shopify verificando los parámetros de URL:
-
-- `shop`: Nombre de la tienda
-- `code`: Código de autorización de Shopify
-- `error`: Si hubo algún error durante la autorización
-
-## Desarrollo
+## 🔧 Instalación
 
 ```bash
 # Instalar dependencias
-pnpm install
+npm install
 
-# Ejecutar en modo desarrollo
-pnpm dev
+# Ejecutar en desarrollo
+npm run dev
 
 # Construir para producción
-pnpm build
-
-# Ejecutar en producción
-pnpm start
+npm run build
 ```
 
-## Tecnologías
+## 🏗️ Arquitectura
 
-- **Next.js 15+**: Framework de React
-- **Tailwind CSS**: Estilos
-- **TypeScript**: Tipado estático
+### Server Actions
 
-## Funcionalidades
+La aplicación utiliza Next.js Server Actions para manejar la comunicación con la API de manera segura:
 
-- ✅ Interfaz idéntica al diseño original HTML
-- ✅ Validación de URL de tienda Shopify
-- ✅ Integración con API backend
-- ✅ Manejo de estados de carga
-- ✅ Detección automática de retorno exitoso
-- ✅ Manejo de errores
-- ✅ Responsive design
-- ✅ Accesibilidad (a11y)
+```typescript
+// src/app/actions/shopify-install.ts
+export async function installShopifyIntegration(formData: FormData) {
+  // Comunicación servidor-a-servidor
+  // Evita problemas de CORS
+  // Redirección segura con Next.js redirect()
+}
+```
+
+### Flujo de OAuth
+
+1. **Formulario de instalación**: Usuario ingresa la URL de su tienda
+2. **Validación client-side**: Verifica formato `.myshopify.com`
+3. **Server Action**: Envía POST request a la API
+4. **Redirección**: Redirect automático a Shopify para autorización
+5. **Callback**: Shopify regresa con código de autorización
+6. **Confirmación**: UI muestra éxito o error
+
+### Componentes Principales
+
+- **`ShopifyAuthConfig.tsx`**: Componente principal con formulario y validación
+- **`shopify-install.ts`**: Server Action para comunicación con API
+- **`page.tsx`**: Página principal que renderiza el componente
+
+## 🔗 API Endpoint
+
+La aplicación se conecta a:
+
+```
+POST https://qbamacbook-pro.tail571a1b.ts.net/api/business/{assistant}/integrations/shopify
+```
+
+Con payload:
+
+```json
+{
+  "shop": "tienda.myshopify.com",
+  "redirect_url": "http://localhost:3000"
+}
+```
+
+## 🔄 Estados de la UI
+
+- **Deshabilitada**: Toggle off, sin formulario visible
+- **Habilitada**: Toggle on, formulario visible
+- **Validando**: Verificación de URL en tiempo real
+- **Cargando**: Estado durante la instalación
+- **Éxito**: Instalación completada
+- **Error**: Mensajes de error específicos
+- **OAuth Return**: Detección automática de retorno desde Shopify
+
+## 🛠️ Desarrollo
+
+### Estructura de archivos
+
+```
+src/
+  app/
+    actions/
+      shopify-install.ts    # Server Action
+    components/
+      ShopifyAuthConfig.tsx # Componente principal
+    page.tsx               # Página principal
+    layout.tsx            # Layout de la app
+    globals.css           # Estilos globales
+```
+
+### Variables de entorno
+
+No se requieren variables de entorno para desarrollo local.
+
+### Testing
+
+Para probar la integración completa:
+
+1. Ejecutar `npm run dev`
+2. Abrir `http://localhost:3000`
+3. Habilitar la integración
+4. Ingresar una URL válida de Shopify
+5. Hacer clic en "Instalar Integración"
+6. Verificar el redirect a Shopify
+
+## 🔧 Solución de problemas
+
+### CORS Issues
+
+✅ **Solucionado**: Los Server Actions ejecutan la comunicación servidor-a-servidor, evitando completamente los problemas de CORS.
+
+### Redirect Handling
+
+✅ **Solucionado**: Next.js `redirect()` maneja las redirecciones de manera nativa y segura.
+
+### Fetch Limitations
+
+✅ **Solucionado**: Al usar Server Actions, no dependemos de `fetch()` del cliente que no sigue redirects 302 automáticamente.
+
+## 📝 Notas
+
+- La aplicación usa un assistant ID hardcodeado (`02020202020202`) para desarrollo
+- El endpoint de la API debe estar disponible y retornar `{ installUrl: "..." }`
+- Los errores de la API se muestran al usuario de manera amigable
+- La URL de callback se genera automáticamente basada en la URL actual
